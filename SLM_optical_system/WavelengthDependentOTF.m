@@ -5,7 +5,7 @@ padsize = 1;
 
 m = 224; % Pixel mumber of SLMksd
 factor = 2; % For Nyquist sampling
-factor2 = 1; % 추가됨
+factor2 = 1;
 M = m * factor * factor2; % Image size
 
 inputIntensity = imread('syringe.png');
@@ -26,7 +26,6 @@ eff_pixelsize  = fov/M;            % Effective pixel size
 slm_pixelsize  = 30;               % Pixel size of SLM in um
 slm_pixelnum   = m;                % 추가
 
-% 변경 사항
 
 PhySizeSLM = slm_pixelnum * slm_pixelsize;
 MaxFreqSLM = PhySizeSLM ./ lambda / f / 2;
@@ -37,10 +36,9 @@ u              = DelFreqSLM*[-M/2:M/2-1];
 
 % CTF_R   = double( sqrt(uu.^2 + vv.^2) < MaxFreqSLM(1) );
 % CTF_G   = double( sqrt(uu.^2 + vv.^2) < MaxFreqSLM(2) );
-CTF_B   = double( sqrt(uu.^2 + vv.^2) < MaxFreqSLM(3) * factor2 ); % 바뀜
+CTF_B   = double( sqrt(uu.^2 + vv.^2) < MaxFreqSLM(3) * factor2 );
 
 %% Set up coherent transfer function
-% 전체적으로 변동이 많아서 다 바꾸는게 나을듯 싶습니다.
 
 inputIntensityFT_R = fftshift(fft2(inputIntensity_R));
 inputIntensityFT_G = fftshift(fft2(inputIntensity_G));
@@ -48,16 +46,16 @@ inputIntensityFT_B = fftshift(fft2(inputIntensity_B));
 
 
 cent = M/2 +1;
-slm = imresize(rand(m,m),factor2,'nearest'); % 바뀜
+slm = imresize(rand(m,m),factor2,'nearest');
 slm2 = 2 * rand(m, m) - 1;
 figure, imshow(slm2);
 colormap(viridis)
-slm = slm.* CTF_B(cent-M/4:cent+M/4-1,cent-M/4:cent+M/4-1); % Physicially displayed SLM pattern % 바뀜
+slm = slm.* CTF_B(cent-M/4:cent+M/4-1,cent-M/4:cent+M/4-1); % Physicially displayed SLM pattern
 
 
 Ratio = MaxFreqSLM / MaxFreqSLM(3); % Radius ratio of each color channel
 
-slm_R = Ratio(1) * imresize(slm,Ratio(1),'nearest'); % resize method는 뭐가 맞을지 모르겠음.. 일단 Interpolation 없는 것으로 하였음
+slm_R = Ratio(1) * imresize(slm,Ratio(1),'nearest'); % no interpolation for resize method
 slm_G = Ratio(2) * imresize(slm,Ratio(2),'nearest');
 slm_B = slm;
 
@@ -74,7 +72,7 @@ slm_g(M/2+1 + floor(-y/2) +1:M/2+1 + floor(y/2),M/2+1 + floor(-x/2) +1:M/2+1 + f
 [x y]= size(slm_B);
 slm_b(M/2+1 + floor(-y/2) +1:M/2+1 + floor(y/2),M/2+1 + floor(-x/2) +1:M/2+1 + floor(x/2)) = slm_B;
 
-% Amplitude는 전부 1로 할 것이 때문에..
+% Amplitude는 전부 1
 CTF_R = double(slm_r~=00);
 CTF_G = double(slm_g~=00);
 CTF_B = double(slm_b~=00);
@@ -148,7 +146,6 @@ outputIntensity(:,:,1) = uint8(abs(ifft2(ifftshift(outputFT_R))));
 outputIntensity(:,:,2) = uint8(abs(ifft2(ifftshift(outputFT_G))));
 outputIntensity(:,:,3) = uint8(abs(ifft2(ifftshift(outputFT_B))));
 
-% 바꿈.. 정수배가 아니라서..
 output = imresize(outputIntensity,[224 224],'box');
 atk_output = imresize(atk_outputIntensity,[224 224],'box');
 
